@@ -11,6 +11,7 @@ import EnergyOptimizer from './pages/EnergyOptimizer';
 import Deployment5GPlan from './pages/Deployment5GPlan';
 import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import AIBacklogTools from './pages/AIBacklogTools';
+import CustomViewsPage from './pages/CustomViewsPage';
 import { featureConfigs } from './featureConfigs';
 // === Batch 08 Gaps & Frontend Mounts ===
 import Cf5gDeploymentPlannerPrioritizingRolloutByDemand from './pages/Cf5gDeploymentPlannerPrioritizingRolloutByDemand'
@@ -53,7 +54,12 @@ const navItems = [
   { key: '5g-deployment-plan', label: '5G Deployment', icon: '\u{1F4E1}' },
   { key: 'predictive-maintenance', label: 'Predictive Maint', icon: '\u{1F527}' },
   { key: 'ai-backlog', label: 'AI Backlog Tools', icon: '\u{1F9EA}' },
+  { key: 'custom-views', label: 'Network Views', icon: '\u{1F4D1}' },
 ];
+
+function ProtectedRoute({ children }) {
+  return isLoggedIn() ? children : <Navigate to="/" replace />;
+}
 
 function AppLayout() {
   const navigate = useNavigate();
@@ -103,6 +109,7 @@ function AppLayout() {
           <Route path="/5g-deployment-plan" element={<Deployment5GPlan />} />
           <Route path="/predictive-maintenance" element={<PredictiveMaintenance />} />
           <Route path="/ai-backlog" element={<AIBacklogTools />} />
+          <Route path="/custom-views" element={<CustomViewsPage />} />
         {/* // === Batch 08 Gaps & Frontend Mounts === */}
       <Route path="/cf-5g-deployment-planner-prioritizing-rollout-by-demand-roi" element={<ProtectedRoute><Cf5gDeploymentPlannerPrioritizingRolloutByDemand /></ProtectedRoute>} />
       <Route path="/cf-dynamic-spectrum-sharing-optimization-across-4g-5g" element={<ProtectedRoute><CfDynamicSpectrumSharingOptimizationAcross4g5g /></ProtectedRoute>} />

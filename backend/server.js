@@ -79,6 +79,9 @@ app.use('/api/gap-no-webhooks-for-alarm-correlation-events', require('./routes/g
 app.use('/api/gap-no-notification-system', require('./routes/gapNoNotificationSystem'));
 app.use('/api/gap-no-multi-tenant-network-operator-separation', require('./routes/gapNoMultiTenantNetworkOperatorSeparation'));
 
+// ─── Custom Views (2 VIZ + 2 NON-VIZ) — mounted BEFORE 404 ──────────────────
+app.use('/api/custom-views', require('./routes/customViews'));
+
 app.listen(PORT, () => {
   console.log(`Telecom Planner API running on port ${PORT}`);
 });
