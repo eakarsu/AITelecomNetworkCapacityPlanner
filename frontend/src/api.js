@@ -97,6 +97,24 @@ export async function aiAnalyze(aiEndpoint, question = '') {
   return result;
 }
 
+export async function postAI(endpoint, data = {}) {
+  const res = await fetch(`${API_BASE}/ai/${endpoint}`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify(data),
+  });
+  if (res.status === 401) { logout(); window.location.href = '/'; throw new Error('Session expired'); }
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.error);
+  return result;
+}
+
+export async function fetchMapData() {
+  const res = await fetch(`${API_BASE}/cell-towers/map-data`, { headers: headers() });
+  if (res.status === 401) { logout(); window.location.href = '/'; throw new Error('Session expired'); }
+  return res.json();
+}
+
 export async function fetchStats() {
   const res = await fetch(`${API_BASE}/stats/summary`, { headers: headers() });
   if (res.status === 401) { logout(); window.location.href = '/'; throw new Error('Session expired'); }
