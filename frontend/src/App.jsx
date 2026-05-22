@@ -13,6 +13,11 @@ import PredictiveMaintenance from './pages/PredictiveMaintenance';
 import AIBacklogTools from './pages/AIBacklogTools';
 import CustomViewsPage from './pages/CustomViewsPage';
 import { featureConfigs } from './featureConfigs';
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 // === Batch 08 Gaps & Frontend Mounts ===
 import Cf5gDeploymentPlannerPrioritizingRolloutByDemand from './pages/Cf5gDeploymentPlannerPrioritizingRolloutByDemand'
 import CfDynamicSpectrumSharingOptimizationAcross4g5g from './pages/CfDynamicSpectrumSharingOptimizationAcross4g5g'
@@ -98,6 +103,10 @@ function AppLayout() {
       </aside>
       <main className="main-content">
         <Routes>
+        <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />
+        <Route path="/codex/custom-viz" element={<ProtectedRoute><CodexCustomVizFeature /></ProtectedRoute>} />
+        <Route path="/codex/operations" element={<ProtectedRoute><CodexOperationsFeature /></ProtectedRoute>} />
+
           <Route path="/" element={<Dashboard />} />
           {Object.entries(featureConfigs).map(([key, config]) => (
             <Route key={key} path={`/${key}`} element={<FeaturePage config={config} />} />
