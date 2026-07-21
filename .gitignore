@@ -91,3 +91,7 @@ token.txt
 id_rsa*
 **/credentials*.json
 **/serviceAccount*.json
+
+# Keep sanitized examples after all secret globs.
+!.env.example
+!**/.env.example

@@ -5,11 +5,11 @@ const pool = require('../db');
 const router = express.Router();
 require('dotenv').config({ path: '../.env' });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'telecom-planner-jwt-secret-2024';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name, role } = req.body;
+    const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'Email, password, and name are required' });
@@ -23,7 +23,8 @@ router.post('/register', async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const userRole = role || 'viewer';
+    // Public registration cannot grant an elevated role.
+    const userRole = 'viewer';
 
     const result = await pool.query(
       'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at',

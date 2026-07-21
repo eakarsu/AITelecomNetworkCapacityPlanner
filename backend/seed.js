@@ -1,15 +1,22 @@
 const { Pool } = require('pg');
 require('dotenv').config({ path: '../.env' });
 
+if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEMO_SEED !== 'true') {
+  throw new Error('Demo seeding requires ALLOW_DEMO_SEED=true outside production.');
+}
+const demoPassword = String(process.env.DEMO_PASSWORD || '');
+if (demoPassword.length < 12) throw new Error('DEMO_PASSWORD must contain at least 12 characters.');
+
 const adminPool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT) || 5432,
   database: 'postgres',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  password: process.env.DB_PASSWORD,
 });
 
 const dbName = process.env.DB_NAME || 'telecom_planner';
+if (!/^[A-Za-z_][A-Za-z0-9_]{0,62}$/.test(dbName)) throw new Error('DB_NAME is invalid.');
 
 async function seed() {
   // Create database if not exists
@@ -31,7 +38,7 @@ async function seed() {
     port: parseInt(process.env.DB_PORT) || 5432,
     database: dbName,
     user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
+    password: process.env.DB_PASSWORD,
   });
 
   try {
@@ -346,7 +353,7 @@ async function seed() {
 
     // Seed Users
     const bcrypt = require('bcryptjs');
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash(demoPassword, 12);
     await pool.query(`
       INSERT INTO users (email, password, name, role) VALUES
       ('admin@telecom.com', $1, 'Admin User', 'admin'),
