@@ -22,8 +22,8 @@ export default function Login({ onLogin }) {
   };
 
   const quickLogin = () => {
-    setEmail('admin@telecom.com');
-    setPassword('admin123');
+    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
+    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
   };
 
   return (
