@@ -64,8 +64,8 @@ export default function Login({ onLogin }) {
 
         <div className="quick-login">
           <p>Quick access for demo</p>
-          <button className="quick-login-btn" type="button" onClick={quickLogin}>
-            Fill Demo Credentials (admin@telecom.com / admin123)
+          <button aria-label="Auto Fill Demo Credentials" className="quick-login-btn" type="button" onClick={quickLogin}>
+            Auto Fill Demo Credentials (admin@telecom.com / admin123)
           </button>
         </div>
       </div>
