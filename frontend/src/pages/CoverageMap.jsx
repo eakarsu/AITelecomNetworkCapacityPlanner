@@ -58,7 +58,10 @@ export default function CoverageMap() {
 
   useEffect(() => {
     fetchMapData()
-      .then((d) => setTowers(d.towers || []))
+      .then((d) => {
+        if (!Array.isArray(d.towers)) throw new Error('Unexpected coverage map response');
+        setTowers(d.towers);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);

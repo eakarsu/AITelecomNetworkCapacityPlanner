@@ -21,9 +21,17 @@ export default function Login({ onLogin }) {
     }
   };
 
-  const quickLogin = () => {
-    setEmail(import.meta.env.VITE_DEMO_EMAIL || '');
-    setPassword(import.meta.env.VITE_DEMO_PASSWORD || '');
+  const quickLogin = async () => {
+    setError('');
+    try {
+      const response = await fetch('/api/auth/demo-credentials', { cache: 'no-store' });
+      const credentials = await response.json();
+      if (!response.ok) throw new Error(credentials.error || 'Demo credentials are unavailable.');
+      setEmail(credentials.email);
+      setPassword(credentials.password);
+    } catch (failure) {
+      setError(failure.message);
+    }
   };
 
   return (
@@ -64,8 +72,8 @@ export default function Login({ onLogin }) {
 
         <div className="quick-login">
           <p>Quick access for demo</p>
-          <button aria-label="Auto Fill Demo Credentials" className="quick-login-btn" type="button" onClick={quickLogin}>
-            Auto Fill Demo Credentials (admin@telecom.com / admin123)
+          <button aria-label="Fill demo credentials" className="quick-login-btn" type="button" onClick={quickLogin}>
+            Fill demo credentials
           </button>
         </div>
       </div>

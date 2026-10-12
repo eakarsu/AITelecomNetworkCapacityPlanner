@@ -41,7 +41,12 @@ app.use(createProviderGate(providerPrefixes));
 app.get('/api/cell-towers/map-data', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, name, latitude, longitude, height, frequency, status, technology, utilization, coverage_radius FROM cell_towers WHERE latitude IS NOT NULL AND longitude IS NOT NULL ORDER BY id'
+      `SELECT id, name, latitude, longitude, height_meters AS height, frequency_band AS frequency,
+              status, tower_type AS technology,
+              ROUND(current_load::numeric / NULLIF(max_capacity, 0) * 100, 1) AS utilization
+         FROM cell_towers
+        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+        ORDER BY id`
     );
     res.json({ towers: result.rows });
   } catch (err) {
@@ -96,6 +101,14 @@ if (process.env.ENABLE_LEGACY_PROVIDER_ROUTES === 'true') {
   for (const [routePath, modulePath] of legacyRoutes) app.use(routePath, require(modulePath));
 }
 
+
+// Advisory AI reports only; native execution and approval routes stay unchanged.
+const aiWorkspaceSupport = require("./aiWorkspaceAdapters.cjs");
+const aiWorkspaceDatabase = require("./db.js");
+app.use('/api/report-workspace', require("./aiWorkspace.cjs").createAIWorkspaceRouter({
+  pool: aiWorkspaceDatabase, authenticateToken: require("./middleware/auth.js"),
+  aiRateLimiter: aiWorkspaceSupport.createWorkspaceLimiter(), features: require("./aiWorkspaceFeatures.json"),
+}));
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.message);

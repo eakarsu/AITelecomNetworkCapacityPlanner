@@ -1,3 +1,4 @@
+import AIReportLibrary from "./components/AIReportLibrary";
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, Navigate, useNavigate } from 'react-router-dom';
 import { isLoggedIn, getUser, logout } from './api';
@@ -100,7 +101,7 @@ function AppLayout() {
           </div>
           <button className="btn-logout" onClick={handleLogout}>Logout</button>
         </div>
-      </aside>
+      <AIReportLibrary /></aside>
       <main className="main-content">
         <Routes>
         <Route path="/insights/timeline" element={<ProtectedRoute><TimelineView /></ProtectedRoute>} />

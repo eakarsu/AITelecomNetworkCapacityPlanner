@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postAI } from '../api';
+import AIReport from '../components/AIReport';
+
+const examples = [
+  { label: 'Storm exposure', region: 'Mid-Atlantic', horizon_days: 30, risk_threshold: 0.7, notes: 'Illustrative scenario: review recent storm exposure, backup power events, and overdue inspections. Use actual tower inventory for tower-specific findings.' },
+  { label: 'Battery health', region: 'Pacific Northwest', horizon_days: 60, risk_threshold: 0.55, notes: 'Illustrative scenario: flag recurring battery alarms and short backup runtime for technician review. Confirm telemetry before work orders.' },
+  { label: 'Cooling systems', region: 'Southwest', horizon_days: 14, risk_threshold: 0.8, notes: 'Illustrative scenario: assess repeated high-temperature alerts and cooling maintenance needs. Validate alarms and site access.' },
+];
 
 export default function PredictiveMaintenance() {
   const navigate = useNavigate();
@@ -48,6 +55,8 @@ export default function PredictiveMaintenance() {
       </div>
 
       <form onSubmit={handleSubmit} className="data-table-container" style={{ padding: 24, marginBottom: 20 }}>
+        <div className="ai-actions" aria-label="Maintenance examples">{examples.map((example) => <button key={example.label} type="button" className="btn btn-secondary" disabled={loading} onClick={() => setForm((current) => ({ ...example, tower_id: current.tower_id }))}>{example.label}</button>)}</div>
+        <p className="subtitle">Tower ID is a real record reference. Select or enter an existing tower ID if you need tower-specific analysis; examples preserve it.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
           <div>
             <label style={{ display: 'block', marginBottom: 6, color: 'var(--text-muted)' }}>Region</label>
@@ -81,14 +90,7 @@ export default function PredictiveMaintenance() {
         </div>
       )}
 
-      {result && (
-        <div className="data-table-container" style={{ padding: 24 }}>
-          <h3>Maintenance Findings</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, color: 'var(--text-muted)', overflow: 'auto', marginTop: 12 }}>
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
-      )}
+      {result && <AIReport response={result} title="Maintenance findings" />}
     </div>
   );
 }

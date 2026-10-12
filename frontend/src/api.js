@@ -41,7 +41,11 @@ export function isLoggedIn() {
 export async function fetchAll(endpoint) {
   const res = await fetch(`${API_BASE}/${endpoint}`, { headers: headers() });
   if (res.status === 401) { logout(); window.location.href = '/'; throw new Error('Session expired'); }
-  return res.json();
+  const payload = await res.json();
+  if (!res.ok) throw new Error(payload.error || `Unable to load ${endpoint} (${res.status})`);
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  throw new Error(`Unexpected ${endpoint} list response`);
 }
 
 export async function fetchOne(endpoint, id) {

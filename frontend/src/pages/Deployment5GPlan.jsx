@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postAI } from '../api';
+import AIReport from '../components/AIReport';
+
+const examples = [
+  { label: 'Urban capacity', region: 'Chicago metro', target_sites: 42, budget: 12500000, horizon_months: 18, notes: 'Illustrative scenario: prioritize overloaded urban corridors, existing fiber access, and permitting lead times. Confirm live demand and site costs before approval.' },
+  { label: 'Suburban expansion', region: 'Greater Raleigh', target_sites: 24, budget: 6800000, horizon_months: 24, notes: 'Illustrative scenario: compare commuter demand, suburban coverage gaps, backhaul availability, and local permit schedules.' },
+  { label: 'Rural coverage', region: 'Northern Maine', target_sites: 12, budget: 4200000, horizon_months: 30, notes: 'Illustrative scenario: assess underserved routes, existing tower reuse, power resilience, and uncertain backhaul costs.' },
+];
 
 export default function Deployment5GPlan() {
   const navigate = useNavigate();
@@ -48,6 +55,7 @@ export default function Deployment5GPlan() {
       </div>
 
       <form onSubmit={handleSubmit} className="data-table-container" style={{ padding: 24, marginBottom: 20 }}>
+        <div className="ai-actions" aria-label="Deployment examples">{examples.map(({ label, ...fields }) => <button key={label} type="button" className="btn btn-secondary" disabled={loading} onClick={() => setForm(fields)}>{label}</button>)}</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
           <div>
             <label style={{ display: 'block', marginBottom: 6, color: 'var(--text-muted)' }}>Region</label>
@@ -81,14 +89,7 @@ export default function Deployment5GPlan() {
         </div>
       )}
 
-      {result && (
-        <div className="data-table-container" style={{ padding: 24 }}>
-          <h3>Deployment Plan</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, color: 'var(--text-muted)', overflow: 'auto', marginTop: 12 }}>
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
-      )}
+      {result && <AIReport response={result} title="Deployment plan" />}
     </div>
   );
 }

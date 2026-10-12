@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postAI } from '../api';
+import AIReport from '../components/AIReport';
 
 export default function CapacitySimulator() {
   const navigate = useNavigate();
@@ -29,12 +30,6 @@ export default function CapacitySimulator() {
     }
   };
 
-  const priorityColor = (roi) => {
-    if (roi >= 20) return '#00c853';
-    if (roi >= 10) return '#ff9800';
-    return '#f44336';
-  };
-
   return (
     <div>
       <div className="back-link" onClick={() => navigate('/')}>
@@ -50,6 +45,11 @@ export default function CapacitySimulator() {
       <div className="data-table-container" style={{ maxWidth: '600px', marginBottom: '24px' }}>
         <form onSubmit={handleSimulate} style={{ padding: '24px' }}>
           <h3 style={{ color: 'var(--accent)', marginBottom: '16px' }}>Simulation Parameters</h3>
+          <div className="ai-actions" aria-label="Capacity examples">{[
+            { label: 'Urban growth', region: 'Chicago metro', growth: '35' },
+            { label: 'Suburban growth', region: 'Greater Raleigh', growth: '22' },
+            { label: 'Rural growth', region: 'Northern Maine', growth: '12' },
+          ].map((sample) => <button key={sample.label} type="button" className="btn btn-secondary" disabled={loading} onClick={() => { setRegion(sample.region); setGrowth(sample.growth); }}>{sample.label}</button>)}</div>
           <div className="form-group">
             <label>Region</label>
             <input
@@ -81,91 +81,7 @@ export default function CapacitySimulator() {
         </form>
       </div>
 
-      {result && (
-        <>
-          {/* Summary KPIs */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '24px' }}>
-            {[
-              { label: 'Total Investment Required', val: result.total_investment_required_usd != null ? `$${Number(result.total_investment_required_usd).toLocaleString()}` : 'N/A' },
-              { label: 'Payback Period', val: result.payback_period_months != null ? `${result.payback_period_months} months` : 'N/A' },
-              { label: 'Scenarios Generated', val: result.scenarios ? result.scenarios.length : 0 },
-            ].map(({ label, val }) => (
-              <div key={label} className="stat-card">
-                <div className="stat-value">{val}</div>
-                <div className="stat-label">{label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Recommended Scenario */}
-          {result.recommended_scenario && (
-            <div className="ai-panel" style={{ marginBottom: '24px' }}>
-              <div className="ai-panel-header">
-                <h3>AI Recommendation</h3>
-              </div>
-              <div className="ai-panel-body">
-                <p style={{ color: 'var(--text-primary)', lineHeight: '1.6' }}>{result.recommended_scenario}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Scenarios Table */}
-          {result.scenarios && result.scenarios.length > 0 && (
-            <div className="data-table-container" style={{ marginBottom: '24px' }}>
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                <h3 style={{ margin: 0 }}>Scenario Comparison</h3>
-              </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Action</th>
-                      <th>Cost (USD)</th>
-                      <th>ROI (%)</th>
-                      <th>Timeline (months)</th>
-                      <th>Coverage Increase (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.scenarios.map((s, i) => (
-                      <tr key={i}>
-                        <td>{i + 1}</td>
-                        <td>{s.action}</td>
-                        <td>${Number(s.cost_usd || 0).toLocaleString()}</td>
-                        <td>
-                          <span style={{
-                            color: priorityColor(s.roi_pct || 0),
-                            fontWeight: 600,
-                          }}>
-                            {s.roi_pct != null ? `${s.roi_pct}%` : '-'}
-                          </span>
-                        </td>
-                        <td>{s.timeline_months != null ? `${s.timeline_months} mo` : '-'}</td>
-                        <td>{s.coverage_increase_pct != null ? `+${s.coverage_increase_pct}%` : '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Findings */}
-          {result.findings && result.findings.length > 0 && (
-            <div className="ai-panel">
-              <div className="ai-panel-header"><h3>Key Findings</h3></div>
-              <div className="ai-panel-body">
-                <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                  {result.findings.map((f, i) => (
-                    <li key={i} style={{ color: 'var(--text-primary)', fontSize: '13px', marginBottom: '6px', lineHeight: '1.5' }}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      {result && <AIReport response={result} title="Capacity simulation" />}
     </div>
   );
 }

@@ -1,12 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postAI } from '../api';
+import AIReport from '../components/AIReport';
 
 const TABS = [
   { key: 'spectrum-sharing-optimize', label: 'Spectrum Sharing', desc: 'Dynamic spectrum sharing across primary/secondary users.' },
   { key: 'network-slicing-optimize', label: 'Network Slicing', desc: 'eMBB / URLLC / mMTC slice configuration recommendations.' },
   { key: 'energy-efficiency-score', label: 'Energy Efficiency', desc: 'PUE-based energy scoring and savings opportunities.' },
 ];
+const EXAMPLES = {
+  'spectrum-sharing-optimize': [
+    { label: 'Urban commute', region: 'Chicago metro', priority: 'eMBB downlink during evening commute' },
+    { label: 'Industrial campus', region: 'Greater Detroit', priority: 'URLLC control traffic at shift change' },
+    { label: 'Rural coverage', region: 'Northern Maine', priority: 'Coverage continuity for public safety traffic' },
+  ],
+  'network-slicing-optimize': [
+    { label: 'Factory automation', useCases: 'Industrial IoT, machine vision', slaTargetsRaw: '{"latency_ms": 10, "availability_pct": 99.9}' },
+    { label: 'Event venue', useCases: 'Live video, attendee broadband', slaTargetsRaw: '{"throughput_mbps": 200, "latency_ms": 30}' },
+    { label: 'Connected fleet', useCases: 'Vehicle telemetry, dispatch', slaTargetsRaw: '{"latency_ms": 25, "availability_pct": 99.5}' },
+  ],
+  'energy-efficiency-score': [
+    { label: 'Current target', targetPue: '1.45' },
+    { label: 'Near-term target', targetPue: '1.35' },
+    { label: 'Stretch target', targetPue: '1.25' },
+  ],
+};
 
 export default function AIBacklogTools() {
   const navigate = useNavigate();
@@ -74,6 +92,7 @@ export default function AIBacklogTools() {
 
       <form onSubmit={submit} className="data-table-container" style={{ padding: 24, marginBottom: 20 }}>
         <p style={{ color: 'var(--text-muted)', marginBottom: 12 }}>{TABS.find(t => t.key === tab)?.desc}</p>
+        <div className="ai-actions" aria-label="AI examples">{EXAMPLES[tab].map((example) => <button key={example.label} type="button" className="btn btn-secondary" disabled={loading} onClick={() => { if ('region' in example) { setRegion(example.region); setPriority(example.priority); } if ('useCases' in example) { setUseCases(example.useCases); setSlaTargetsRaw(example.slaTargetsRaw); } if ('targetPue' in example) setTargetPue(example.targetPue); }}>{example.label}</button>)}</div>
 
         {tab === 'spectrum-sharing-optimize' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
@@ -119,14 +138,7 @@ export default function AIBacklogTools() {
         </div>
       )}
 
-      {result && (
-        <div className="data-table-container" style={{ padding: 24 }}>
-          <h3>Result</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 13, color: 'var(--text-muted)', overflow: 'auto', marginTop: 12 }}>
-            {JSON.stringify(result, null, 2)}
-          </pre>
-        </div>
-      )}
+      {result && <AIReport response={result} title="AI backlog result" />}
     </div>
   );
 }

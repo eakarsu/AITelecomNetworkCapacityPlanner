@@ -7,6 +7,24 @@ require('dotenv').config({ path: '../.env' });
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Local demo autofill is opt-in. Never expose configured credentials in production.
+router.get('/demo-credentials', (req, res) => {
+  if (process.env.NODE_ENV === 'production' || process.env.ENABLE_DEMO_CREDENTIAL_AUTOFILL !== 'true' || !['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.ip)) {
+    return res.status(404).json({ error: 'Demo credential autofill is unavailable.' });
+  }
+  const pairs = [
+    ['DEMO_EMAIL', 'DEMO_PASSWORD'],
+    ['DEMO_ADMIN_EMAIL', 'DEMO_ADMIN_PASSWORD'],
+    ['SEED_ADMIN_EMAIL', 'SEED_ADMIN_PASSWORD'],
+    ['ADMIN_EMAIL', 'ADMIN_PASSWORD'],
+    ['DEFAULT_EMAIL', 'DEFAULT_PASSWORD'],
+  ];
+  const pair = pairs.find(([email, password]) => process.env[email] && process.env[password]);
+  if (!pair) return res.status(404).json({ error: 'No configured demo account credentials are available.' });
+  res.set('Cache-Control', 'no-store');
+  return res.json({ email: process.env[pair[0]], password: process.env[pair[1]] });
+});
+
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;

@@ -39,8 +39,9 @@ export default function FeaturePage({ config }) {
     try {
       setLoading(true);
       const data = await fetchAll(endpoint);
-      setItems(data);
+      setItems(Array.isArray(data) ? data : []);
     } catch (err) {
+      setItems([]);
       showToast('error', err.message);
     } finally {
       setLoading(false);

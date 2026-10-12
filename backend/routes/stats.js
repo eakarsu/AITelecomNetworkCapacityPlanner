@@ -12,14 +12,14 @@ router.get('/summary', authMiddleware, async (req, res) => {
         SELECT
           COUNT(*)::int AS total_towers,
           COUNT(*) FILTER (WHERE status = 'active')::int AS active_towers,
-          COALESCE(ROUND(AVG(current_load_percent)::numeric, 1), 0) AS avg_tower_load_percent
+          COALESCE(ROUND(AVG(current_load::numeric / NULLIF(max_capacity, 0) * 100), 1), 0) AS avg_tower_load_percent
         FROM cell_towers
       `),
       // Bandwidth allocated and used
       pool.query(`
         SELECT
-          COALESCE(SUM(allocated_bandwidth), 0) AS total_bandwidth_allocated,
-          COALESCE(SUM(used_bandwidth), 0) AS total_bandwidth_used
+          COALESCE(SUM(allocated_bandwidth_mbps), 0) AS total_bandwidth_allocated,
+          COALESCE(SUM(used_bandwidth_mbps), 0) AS total_bandwidth_used
         FROM bandwidth_allocations
       `),
       // Active and critical alarms
@@ -36,18 +36,18 @@ router.get('/summary', authMiddleware, async (req, res) => {
       `),
       // Average QoS score
       pool.query(`
-        SELECT COALESCE(ROUND(AVG(qos_score)::numeric, 1), 0) AS avg_qos_score
+        SELECT COALESCE(ROUND(AVG(availability_percent)::numeric, 1), 0) AS avg_qos_score
         FROM qos_monitoring
       `),
       // Upcoming maintenance count
       pool.query(`
         SELECT COUNT(*)::int AS upcoming_maintenance
         FROM maintenance_schedules
-        WHERE scheduled_date >= CURRENT_DATE AND status != 'completed'
+        WHERE scheduled_start::date >= CURRENT_DATE AND status != 'completed'
       `),
       // Total energy consumption
       pool.query(`
-        SELECT COALESCE(SUM(energy_kwh), 0) AS total_energy_consumption
+        SELECT COALESCE(SUM(monthly_kwh), 0) AS total_energy_consumption
         FROM energy_consumption
       `),
     ]);
@@ -79,8 +79,8 @@ router.get('/network-health', authMiddleware, async (req, res) => {
         SELECT
           COUNT(*)::int AS total,
           COUNT(*) FILTER (WHERE status = 'active')::int AS active,
-          COALESCE(ROUND(AVG(current_load_percent)::numeric, 1), 0) AS avg_load,
-          COUNT(*) FILTER (WHERE current_load_percent > 90)::int AS overloaded
+          COALESCE(ROUND(AVG(current_load::numeric / NULLIF(max_capacity, 0) * 100), 1), 0) AS avg_load,
+          COUNT(*) FILTER (WHERE current_load::numeric / NULLIF(max_capacity, 0) * 100 > 90)::int AS overloaded
         FROM cell_towers
       `),
       // Alarm severity breakdown
@@ -96,8 +96,8 @@ router.get('/network-health', authMiddleware, async (req, res) => {
       // QoS stats
       pool.query(`
         SELECT
-          COALESCE(ROUND(AVG(qos_score)::numeric, 1), 0) AS avg_score,
-          COUNT(*) FILTER (WHERE qos_score < 50)::int AS poor_count,
+          COALESCE(ROUND(AVG(availability_percent)::numeric, 1), 0) AS avg_score,
+          COUNT(*) FILTER (WHERE availability_percent < 50)::int AS poor_count,
           COUNT(*)::int AS total
         FROM qos_monitoring
       `),
@@ -112,10 +112,10 @@ router.get('/network-health', authMiddleware, async (req, res) => {
         )
         UNION ALL
         (
-          SELECT 'overloaded_tower' AS type, tower_name AS name, 'high_load' AS severity, updated_at AS occurred_at
+          SELECT 'overloaded_tower' AS type, name, 'high_load' AS severity, updated_at AS occurred_at
           FROM cell_towers
-          WHERE current_load_percent > 90
-          ORDER BY current_load_percent DESC
+          WHERE current_load::numeric / NULLIF(max_capacity, 0) * 100 > 90
+          ORDER BY current_load::numeric / NULLIF(max_capacity, 0) DESC
           LIMIT 5
         )
         ORDER BY occurred_at DESC
