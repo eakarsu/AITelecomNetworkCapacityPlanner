@@ -38,16 +38,20 @@ function createCrudRouter(tableName, displayName) {
       const limit = parseInt(req.query.limit) || 20;
       const offset = (page - 1) * limit;
 
+      const q=String(req.query.search||'').trim();
+      const where = q ? ' WHERE name ILIKE $3' : '';
+      const wvals = q ? ['%'+q+'%'] : [];
       const result = await pool.query(
-        `SELECT * FROM ${tableName} ORDER BY id DESC LIMIT $1 OFFSET $2`,
-        [limit, offset]
+        `SELECT * FROM ${tableName}${where} ORDER BY id DESC LIMIT $1 OFFSET $2`,
+        [limit, offset, ...wvals]
       );
-      const countResult = await pool.query(`SELECT COUNT(*) FROM ${tableName}`);
+      const countResult = await pool.query(`SELECT COUNT(*) FROM ${tableName}${q?' WHERE name ILIKE $1':''}`, wvals);
       const total = parseInt(countResult.rows[0].count);
 
       // If no pagination params, return plain array for backward compat with frontend
       if (!req.query.page && !req.query.limit) {
-        const all = await pool.query(`SELECT * FROM ${tableName} ORDER BY id DESC`);
+        const where1 = q ? ' WHERE name ILIKE $1' : '';
+        const all = await pool.query(`SELECT * FROM ${tableName}${where1} ORDER BY id DESC`, wvals);
         return res.json(all.rows);
       }
 
